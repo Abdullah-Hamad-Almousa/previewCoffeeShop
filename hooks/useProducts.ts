@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getProducts, getProduct, type Product } from '@/services/products';
 import { getAllProductRatings } from '@/services/reviews';
 
@@ -8,24 +8,31 @@ export function useProducts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    Promise.all([getProducts(), getAllProductRatings()])
-      .then(([data, ratings]) => {
-        const merged = data.map((p) => {
-          const r = ratings.get(p.id);
-          return {
-            ...p,
-            avg_rating: r?.avg_rating,
-            review_count: r?.review_count,
-          };
-        });
-        setProducts(merged);
-        setLoading(false);
-      })
-      .catch(() => { setError(true); setLoading(false); });
+  const fetchProducts = useCallback(async () => {
+    try {
+      const [data, ratings] = await Promise.all([getProducts(), getAllProductRatings()]);
+      const merged = data.map((p) => {
+        const r = ratings.get(p.id);
+        return {
+          ...p,
+          avg_rating: r?.avg_rating,
+          review_count: r?.review_count,
+        };
+      });
+      setProducts(merged);
+      setError(false);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { products, loading, error };
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  return { products, loading, error, refresh: fetchProducts };
 }
 
 /** Hook: fetch single product by id + loading state */

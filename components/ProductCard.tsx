@@ -28,50 +28,60 @@ export const ProductCard = memo(function ProductCard({ product, onPress }: Produ
 
   return (
     <Pressable style={styles.card} onPress={() => onPress(product.id)}>
+      {/* Image — wide, takes top portion of the card */}
       <View style={styles.imageWrap}>
         <ProductImage
           product={product}
           style={styles.image}
-          placeholderFontSize={32}
+          placeholderFontSize={36}
           placeholderBg={colors.bgLight}
         />
-      </View>
-      <Text style={styles.name} numberOfLines={1}>
-        {getProductName(product, isAr)}
-      </Text>
-      {getProductRealName(product, isAr) && (
-        <Text style={styles.realName} numberOfLines={1}>
-          {getProductRealName(product, isAr)}
-        </Text>
-      )}
-      <Text style={styles.price}>
-        {product.price.toFixed(2)} {t('products.currency')}
-      </Text>
-      {hasRating && (
-        <View style={styles.ratingRow}>
-          <Text style={styles.stars}>{renderStars(product.avg_rating!)}</Text>
-          <Text style={styles.ratingText}>
-            {product.avg_rating!.toFixed(1)} ({product.review_count})
-          </Text>
+        {/* Gear accent in corner */}
+        <View style={styles.gearBadge}>
+          <Text style={styles.gearEmoji}>⚙️</Text>
         </View>
-      )}
+      </View>
+
+      {/* Content section */}
+      <View style={styles.content}>
+        <Text style={styles.name} numberOfLines={1}>
+          {getProductName(product, isAr)}
+        </Text>
+        {getProductRealName(product, isAr) && (
+          <Text style={styles.realName} numberOfLines={1}>
+            {getProductRealName(product, isAr)}
+          </Text>
+        )}
+        <View style={styles.bottomRow}>
+          <Text style={styles.price}>
+            {product.price.toFixed(2)} {t('products.currency')}
+          </Text>
+          {hasRating && (
+            <View style={styles.ratingRow}>
+              <Text style={styles.stars}>{renderStars(product.avg_rating!)}</Text>
+              <Text style={styles.ratingText}>
+                {product.avg_rating!.toFixed(1)} ({product.review_count})
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
     </Pressable>
   );
 });
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 12,
-    gap: 8,
+    backgroundColor: colors.bgCard,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   imageWrap: {
     width: '100%',
-    aspectRatio: 1,
-    borderRadius: 10,
+    aspectRatio: 1.6,
     overflow: 'hidden',
     backgroundColor: colors.bgLight,
   },
@@ -79,20 +89,45 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  gearBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(26, 20, 16, 0.6)',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gearEmoji: {
+    fontSize: 16,
+  },
+  content: {
+    padding: 14,
+    gap: 4,
+  },
   name: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.textLight,
   },
   realName: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textMuted,
     fontWeight: '400',
-    marginTop: -4,
+    fontStyle: 'italic',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 6,
   },
   price: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
+    fontSize: 15,
+    color: colors.brass,
+    fontWeight: '600',
   },
   ratingRow: {
     flexDirection: 'row',
@@ -100,12 +135,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   stars: {
-    fontSize: 13,
-    color: '#FF9500',
+    fontSize: 12,
+    color: colors.rating,
     letterSpacing: -1,
   },
   ratingText: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textMuted,
     fontWeight: '500',
   },

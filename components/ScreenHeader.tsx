@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { LanguageToggle } from '@/components/LanguageToggle';
-import { sharedStyles } from '@/lib/theme';
+import { sharedStyles, colors } from '@/lib/theme';
 
 interface ScreenHeaderProps {
   title?: string;
@@ -23,7 +23,7 @@ export function ScreenHeader({ title }: ScreenHeaderProps) {
   return (
     <View style={sharedStyles.header}>
       <Pressable onPress={() => router.back()} style={sharedStyles.backBtn}>
-        <Text style={sharedStyles.backText}>‹ {title}</Text>
+        <Text style={styles.backText}>‹ {title}</Text>
       </Pressable>
       <LanguageToggle />
     </View>
@@ -32,4 +32,5 @@ export function ScreenHeader({ title }: ScreenHeaderProps) {
 
 const styles = StyleSheet.create({
   headerRight: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 12 },
+  backText: { fontSize: 16, color: colors.brass },
 });

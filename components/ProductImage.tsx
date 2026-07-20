@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { memo, useState, useEffect } from 'react';
+import { View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import type { ImageStyle } from 'react-native';
 
@@ -20,10 +20,31 @@ export const ProductImage = memo(function ProductImage({
   placeholderFontSize = 32,
   placeholderBg,
 }: ProductImageProps) {
-  if (product.image_url) {
-    return <Image source={{ uri: product.image_url }} style={style} contentFit="cover" />;
+  const [errored, setErrored] = useState(false);
+
+  // Reset error state when URL changes
+  useEffect(() => {
+    setErrored(false);
+  }, [product.image_url]);
+
+  // Show image only if URL exists, looks valid, AND hasn't errored
+  const url = product.image_url;
+  const isValidUrl = url && url.startsWith('http') && !errored;
+
+  if (isValidUrl) {
+    return (
+      <Image
+        source={{ uri: url }}
+        style={style}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={200}
+        onError={() => setErrored(true)}
+      />
+    );
   }
 
+  // Fallback: initials placeholder
   return (
     <View style={[style, sharedStyles.placeholder, placeholderBg ? { backgroundColor: placeholderBg } : null]}>
       <Text style={[sharedStyles.placeholderText, { fontSize: placeholderFontSize }]}>

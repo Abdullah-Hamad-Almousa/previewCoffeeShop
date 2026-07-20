@@ -1,5 +1,6 @@
-import { Pressable, Text, StyleSheet, View } from 'react-native';
+import { Pressable, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { colors } from '@/lib/theme';
 
 export function LanguageToggle() {
   const { i18n, t } = useTranslation();
@@ -10,7 +11,7 @@ export function LanguageToggle() {
 
   return (
     <Pressable onPress={toggle} style={styles.container}>
-      <Text style={styles.icon}>🌐</Text>
+      <Text style={styles.icon}>⚙️</Text>
       <Text style={styles.text}>
         {current === 'en' ? t('common.arabic') : t('common.english')}
       </Text>
@@ -25,7 +26,11 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 6,
+    backgroundColor: colors.bgCard,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   icon: { fontSize: 14 },
-  text: { fontSize: 14, color: '#007AFF' },
+  text: { fontSize: 14, color: colors.brass, fontWeight: '500' },
 });

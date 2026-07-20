@@ -16,7 +16,7 @@ import { getProduct, type Product } from '@/services/products';
 import { getReviews, addReview, deleteReview, hasPurchased, getProductRating, type Review, type ProductRating } from '@/services/reviews';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAr, getProductName, getProductDesc, getProductRealName } from '@/lib/helpers';
-import { sharedStyles } from '@/lib/theme';
+import { sharedStyles, colors } from '@/lib/theme';
 import { Footer } from '@/components/Footer';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { ProductImage } from '@/components/ProductImage';
@@ -136,6 +136,7 @@ export default function ProductDetailScreen() {
 
   return (
     <ScrollView
+      style={{ backgroundColor: colors.bgDark }}
       contentContainerStyle={sharedStyles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
@@ -291,87 +292,94 @@ export default function ProductDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: colors.bgDark },
   imageWrap: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   image: { width: '100%', height: '100%' },
-  name: { fontSize: 26, fontWeight: 'bold', marginBottom: 4 },
-  realName: { fontSize: 16, color: '#999', marginBottom: 8, fontStyle: 'italic' },
-  price: { fontSize: 22, color: '#007AFF', fontWeight: '600', marginBottom: 8 },
+  name: { fontSize: 26, fontWeight: 'bold', marginBottom: 4, color: colors.textLight },
+  realName: { fontSize: 16, color: colors.textMuted, marginBottom: 8, fontStyle: 'italic' },
+  price: { fontSize: 22, color: colors.brass, fontWeight: '600', marginBottom: 8 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20 },
-  ratingStars: { fontSize: 18, color: '#FF9500', letterSpacing: -1 },
-  ratingSummary: { fontSize: 14, color: '#999', fontWeight: '500' },
+  ratingStars: { fontSize: 18, color: colors.rating, letterSpacing: -1 },
+  ratingSummary: { fontSize: 14, color: colors.textMuted, fontWeight: '500' },
   descSection: { marginBottom: 24 },
-  descLabel: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 6 },
-  descText: { fontSize: 16, lineHeight: 24, color: '#333' },
+  descLabel: { fontSize: 14, fontWeight: '600', color: colors.textMid, marginBottom: 6 },
+  descText: { fontSize: 16, lineHeight: 24, color: colors.textLight },
   payButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
+    backgroundColor: colors.brass,
+    borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  payButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  payButtonText: { color: colors.bgDark, fontSize: 18, fontWeight: '700' },
   buttonRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   buttonHalf: { flex: 1 },
   orderButton: {
-    backgroundColor: '#34C759',
-    borderRadius: 12,
+    backgroundColor: colors.success,
+    borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  orderButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  notFound: { fontSize: 18, color: '#666' },
-  backLink: { fontSize: 16, color: '#007AFF' },
+  orderButtonText: { color: colors.textLight, fontSize: 18, fontWeight: '700' },
+  notFound: { fontSize: 18, color: colors.textMuted },
+  backLink: { fontSize: 16, color: colors.brass },
   // ---- Reviews ----
   reviewsSection: { marginBottom: 24 },
-  reviewsTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 12 },
+  reviewsTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 12, color: colors.textLight },
   addReviewBtn: {
-    backgroundColor: '#34C759',
-    borderRadius: 10,
+    backgroundColor: colors.success,
+    borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 16,
   },
-  addReviewBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  loginHint: { fontSize: 14, color: '#999', marginBottom: 16, fontStyle: 'italic' },
+  addReviewBtnText: { color: colors.textLight, fontSize: 16, fontWeight: '600' },
+  loginHint: { fontSize: 14, color: colors.textMuted, marginBottom: 16, fontStyle: 'italic' },
   form: {
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   starsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   star: { fontSize: 32 },
-  starActive: { color: '#FF9500' },
-  starInactive: { color: '#ddd' },
+  starActive: { color: colors.rating },
+  starInactive: { color: colors.borderLight },
   textArea: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
+    borderColor: colors.border,
+    borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
     minHeight: 80,
-    backgroundColor: '#fff',
+    backgroundColor: colors.bgMid,
+    color: colors.textLight,
     marginBottom: 12,
   },
   formButtons: { flexDirection: 'row', gap: 12 },
-  formBtn: { flex: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
-  cancelBtn: { backgroundColor: '#E5E5EA' },
-  cancelBtnText: { color: '#333', fontSize: 16, fontWeight: '600' },
-  submitBtn: { backgroundColor: '#007AFF' },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  noReviews: { fontSize: 14, color: '#999', fontStyle: 'italic', marginBottom: 8 },
+  formBtn: { flex: 1, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
+  cancelBtn: { backgroundColor: colors.bgLight },
+  cancelBtnText: { color: colors.textMid, fontSize: 16, fontWeight: '600' },
+  submitBtn: { backgroundColor: colors.brass },
+  submitBtnText: { color: colors.bgDark, fontSize: 16, fontWeight: '700' },
+  noReviews: { fontSize: 14, color: colors.textMuted, fontStyle: 'italic', marginBottom: 8 },
   reviewCard: {
-    backgroundColor: '#F5F5F7',
-    borderRadius: 12,
+    backgroundColor: colors.bgCard,
+    borderRadius: 10,
     padding: 14,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   reviewHeader: {
     flexDirection: 'row',
@@ -379,10 +387,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
-  reviewUser: { fontSize: 16, fontWeight: '600', color: '#333' },
-  reviewStars: { fontSize: 16, color: '#FF9500' },
-  reviewRatingText: { fontSize: 12, color: '#999' },
-  reviewComment: { fontSize: 15, lineHeight: 22, color: '#555' },
+  reviewUser: { fontSize: 16, fontWeight: '600', color: colors.textLight },
+  reviewStars: { fontSize: 16, color: colors.rating },
+  reviewRatingText: { fontSize: 12, color: colors.textMuted },
+  reviewComment: { fontSize: 15, lineHeight: 22, color: colors.textMid },
   deleteReviewBtn: { marginTop: 8, alignSelf: 'flex-end' },
-  deleteReviewText: { fontSize: 14, color: '#FF3B30' },
+  deleteReviewText: { fontSize: 14, color: colors.danger },
 });
