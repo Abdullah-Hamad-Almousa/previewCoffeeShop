@@ -9,6 +9,11 @@ export interface Product {
   price: number;
   image_url: string | null;
   initials: string;
+  real_name_en: string | null;
+  real_name_ar: string | null;
+  // Optional rating fields (populated by useProducts after fetching ratings)
+  avg_rating?: number;
+  review_count?: number;
 }
 
 export async function getProducts(): Promise<Product[]> {

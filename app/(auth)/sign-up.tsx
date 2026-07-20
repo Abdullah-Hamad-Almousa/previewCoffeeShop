@@ -15,7 +15,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/hooks/useAuth';
 import { Turnstile } from '@/components/Turnstile';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function SignUpScreen() {
   const { t } = useTranslation();
@@ -38,7 +39,12 @@ export default function SignUpScreen() {
     if (!email.trim()) e.email = t('auth.validation.emailRequired');
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t('auth.validation.emailInvalid');
     if (!password) e.password = t('auth.validation.passwordRequired');
-    else if (password.length < 6) e.password = t('auth.validation.passwordTooShort');
+    else if (password.length < 8) e.password = t('auth.validation.passwordTooShort');
+    else if (password.length > 32) e.password = t('auth.validation.passwordTooLong');
+    else if (!/[A-Z]/.test(password)) e.password = t('auth.validation.passwordNoUpper');
+    else if (!/[a-z]/.test(password)) e.password = t('auth.validation.passwordNoLower');
+    else if (!/[0-9]/.test(password)) e.password = t('auth.validation.passwordNoNumber');
+    else if (!/[^a-zA-Z0-9\s]/.test(password)) e.password = t('auth.validation.passwordNoSpecial');
     if (!confirm) e.confirm = t('auth.validation.confirmRequired');
     else if (password !== confirm) e.confirm = t('auth.validation.passwordMismatch');
     setErrors(e);
@@ -66,12 +72,7 @@ export default function SignUpScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.replace('/(customer)')} style={styles.backBtn}>
-            <Text style={styles.backText}>‹ {t('nav.home')}</Text>
-          </Pressable>
-          <LanguageToggle />
-        </View>
+        <ScreenHeader title={t('nav.home')} />
 
         <Text style={styles.title}>{t('auth.signUp')}</Text>
 
@@ -129,8 +130,8 @@ export default function SignUpScreen() {
           <Turnstile onToken={setCaptchaToken} />
         </View>
 
-        <Pressable style={[styles.button, submitting && styles.buttonDisabled]} onPress={handleSignUp} disabled={submitting}>
-          <Text style={styles.buttonText}>
+        <Pressable style={[styles.primaryBtn, submitting && styles.btnDisabled]} onPress={handleSignUp} disabled={submitting}>
+          <Text style={styles.primaryBtnText}>
             {submitting ? t('auth.signingUp') : t('auth.signUpButton')}
           </Text>
         </Pressable>
@@ -144,32 +145,11 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
+  ...sharedStyles,
   flex: { flex: 1 },
   container: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backBtn: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  field: { marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  error: { fontSize: 12, color: '#FF3B30', marginTop: 4 },
-  button: {
-    backgroundColor: '#007AFF',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  error: { fontSize: 12, color: colors.danger, marginTop: 4 },
   link: { marginTop: 16, alignItems: 'center' },
-  linkText: { fontSize: 14, color: '#007AFF' },
+  linkText: { fontSize: 14, color: colors.primary },
 });

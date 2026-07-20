@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Preview Coffee Shop",
+    "name": "Mystic Coffee",
     "version": "preview 1.0.0"
   },
   "nav": {
@@ -32,7 +32,12 @@
       "emailRequired": "Email is required",
       "emailInvalid": "Please enter a valid email",
       "passwordRequired": "Password is required",
-      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordTooLong": "Password must be at most 32 characters",
+      "passwordNoUpper": "Password must contain at least one uppercase letter",
+      "passwordNoLower": "Password must contain at least one lowercase letter",
+      "passwordNoNumber": "Password must contain at least one number",
+      "passwordNoSpecial": "Password must contain at least one special character (@, #, $, etc.)",
       "confirmRequired": "Please confirm your password",
       "passwordMismatch": "Passwords do not match",
       "usernameRequired": "Username is required",
@@ -71,10 +76,15 @@
     }
   },
   "home": {
-    "welcome": "Welcome to Preview Coffee Shop",
+    "welcome": "Welcome to Mystic Coffee",
     "recommendationToday": "Recommendation Today",
     "noRecommendation": "No recommendation available",
-    "todaysPick": "Today's Pick"
+    "todaysPick": "Recommend to you",
+    "appDescription": "Order your favorite coffee and snacks. Preview mode — orders are free.",
+    "currentLocation": "Riyadh",
+    "heroTitle": "Mystic Coffee",
+    "heroSubtitle": "Your favorite coffee, one tap away",
+    "heroTagline": "Preview build — still in development"
   },
   "products": {
     "title": "Products",
@@ -84,6 +94,26 @@
     "pay": "Pay",
     "notFound": "Product not found",
     "loadError": "Failed to load products"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "noReviews": "No reviews yet",
+    "addReview": "Add Review",
+    "rating": "Rating",
+    "comment": "Comment",
+    "submit": "Submit Review",
+    "submitting": "Submitting...",
+    "success": "Review added successfully",
+    "failed": "Failed to add review",
+    "mustPurchase": "You can only review products you have purchased",
+    "yourReview": "Your Review",
+    "deleteReview": "Delete",
+    "deleteConfirm": "Delete your review?",
+    "deleted": "Review deleted",
+    "deleteFailed": "Failed to delete review",
+    "alreadyReviewed": "You have already reviewed this product",
+    "loginToReview": "Please sign in to write a review",
+    "stars": "stars"
   },
   "search": {
     "placeholder": "Search products...",
@@ -114,6 +144,28 @@
     "retry": "Retry",
     "backToProduct": "Back to Product",
     "serverCheckFailed": "Could not verify payment status. Please try again."
+  },
+  "order": {
+    "title": "Place Order",
+    "orderNow": "Order Now",
+    "pickupTime": "Pickup Time",
+    "asap": "ASAP (15 min)",
+    "in30min": "In 30 minutes",
+    "in1hour": "In 1 hour",
+    "custom": "Pick a time",
+    "confirmOrder": "Confirm Order",
+    "ordering": "Placing order...",
+    "success": "Order Placed Successfully",
+    "successMessage": "Your order has been placed (free)",
+    "failed": "Failed to place order",
+    "failedMessage": "Could not place your order",
+    "deliveryLocation": "Delivery Location",
+    "orderId": "Order ID",
+    "done": "Done",
+    "backToProduct": "Back to Product",
+    "loginRequired": "Please sign in to place an order",
+    "previewNote": "Preview app — no real delivery will be made",
+    "shuffleLocation": "Shuffle"
   },
   "manager": {
     "title": "Dev Panel",

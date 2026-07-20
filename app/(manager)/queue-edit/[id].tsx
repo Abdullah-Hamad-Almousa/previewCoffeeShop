@@ -1,26 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { getProducts, type Product } from '@/services/products';
 import { getQueueItems, type QueueItem } from '@/services/queue';
 import { useQueue } from '@/hooks/useQueue';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ProductImage } from '@/components/ProductImage';
 import { Footer } from '@/components/Footer';
+import { useIsAr, getProductName } from '@/lib/helpers';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function QueueEditScreen() {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === 'ar';
+  const { t } = useTranslation();
+  const isAr = useIsAr();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queueId = Number(id);
   const { saveItems } = useQueue();
@@ -43,22 +45,22 @@ export default function QueueEditScreen() {
       .catch(() => setLoading(false));
   }, [queueId]);
 
-  const handleAddProduct = (productId: string) => {
+  const handleAddProduct = useCallback((productId: string) => {
     setSelectedIds((prev) => {
       if (prev.includes(productId)) return prev;
       return [...prev, productId];
     });
-  };
+  }, []);
 
-  const handleRemoveAt = (index: number) => {
+  const handleRemoveAt = useCallback((index: number) => {
     setSelectedIds((prev) => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     setSelectedIds([]);
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setSaving(true);
     try {
       await saveItems(queueId, selectedIds);
@@ -69,30 +71,25 @@ export default function QueueEditScreen() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [queueId, saveItems, selectedIds, t]);
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingSpinner />;
   }
 
-  const selectedProducts = selectedIds
-    .map((pid) => products.find((p) => p.id === pid))
-    .filter(Boolean) as Product[];
+  const selectedProducts = useMemo(
+    () => selectedIds.map((pid) => products.find((p) => p.id === pid)).filter(Boolean) as Product[],
+    [selectedIds, products]
+  );
 
-  const availableProducts = products.filter((p) => !selectedIds.includes(p.id));
+  const availableProducts = useMemo(
+    () => products.filter((p) => !selectedIds.includes(p.id)),
+    [products, selectedIds]
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>‹ {t('queue.title')} #{queueId}</Text>
-        </Pressable>
-        <LanguageToggle />
-      </View>
+      <ScreenHeader title={`${t('queue.title')} #${queueId}`} />
 
       <Text style={styles.title}>{t('queue.editQueue')} #{queueId}</Text>
       <Text style={styles.hint}>{t('queue.buildQueue')}</Text>
@@ -115,16 +112,15 @@ export default function QueueEditScreen() {
             <View key={`${product.id}-${index}`} style={styles.orderRow}>
               <Text style={styles.orderPosition}>{index + 1}</Text>
               <View style={styles.orderImageWrap}>
-                {product.image_url ? (
-                  <Image source={{ uri: product.image_url }} style={styles.orderImage} contentFit="cover" />
-                ) : (
-                  <View style={[styles.orderImage, styles.placeholder]}>
-                    <Text style={styles.placeholderText}>{product.initials}</Text>
-                  </View>
-                )}
+                <ProductImage
+                  product={product}
+                  style={styles.orderImage}
+                  placeholderFontSize={14}
+                  placeholderBg={colors.bgGray}
+                />
               </View>
               <Text style={styles.orderName} numberOfLines={1}>
-                {isAr ? product.name_ar : product.name_en}
+                {getProductName(product, isAr)}
               </Text>
               <Pressable onPress={() => handleRemoveAt(index)} style={styles.removeBtn}>
                 <Text style={styles.removeText}>✕</Text>
@@ -148,16 +144,15 @@ export default function QueueEditScreen() {
               onPress={() => handleAddProduct(product.id)}
             >
               <View style={styles.availImageWrap}>
-                {product.image_url ? (
-                  <Image source={{ uri: product.image_url }} style={styles.availImage} contentFit="cover" />
-                ) : (
-                  <View style={[styles.availImage, styles.placeholder]}>
-                    <Text style={styles.placeholderText}>{product.initials}</Text>
-                  </View>
-                )}
+                <ProductImage
+                  product={product}
+                  style={styles.availImage}
+                  placeholderFontSize={14}
+                  placeholderBg={colors.bgGray}
+                />
               </View>
               <View style={styles.availInfo}>
-                <Text style={styles.availName}>{isAr ? product.name_ar : product.name_en}</Text>
+                <Text style={styles.availName}>{getProductName(product, isAr)}</Text>
                 <Text style={styles.availPrice}>
                   {product.price.toFixed(2)} {t('products.currency')}
                 </Text>
@@ -167,14 +162,13 @@ export default function QueueEditScreen() {
           ))}
         </View>
       )}
-
       {/* Save button */}
       <Pressable
-        style={[styles.saveButton, (saving || selectedIds.length === 0) && styles.saveButtonDisabled]}
+        style={[sharedStyles.primaryBtn, styles.saveButton, (saving || selectedIds.length === 0) && styles.saveButtonDisabled]}
         onPress={handleSave}
         disabled={saving || selectedIds.length === 0}
       >
-        <Text style={styles.saveButtonText}>
+        <Text style={sharedStyles.primaryBtnText}>
           {saving ? t('manager.saving') : t('queue.save')}
         </Text>
       </Pressable>
@@ -185,17 +179,13 @@ export default function QueueEditScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backButton: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
+  ...sharedStyles,
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 6 },
-  hint: { fontSize: 14, color: '#666', marginBottom: 20 },
+  hint: { fontSize: 14, color: colors.textMid, marginBottom: 20 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   sectionTitle: { fontSize: 17, fontWeight: '600', marginBottom: 10, marginTop: 8 },
-  clearAllText: { fontSize: 14, color: '#FF3B30' },
-  emptyText: { fontSize: 14, color: '#999', marginBottom: 12, fontStyle: 'italic' },
+  clearAllText: { fontSize: 14, color: colors.danger },
+  emptyText: { fontSize: 14, color: colors.textMuted, marginBottom: 12, fontStyle: 'italic' },
   orderList: { gap: 6, marginBottom: 20 },
   orderRow: {
     flexDirection: 'row',
@@ -205,19 +195,17 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 10,
   },
-  orderPosition: { fontSize: 16, fontWeight: 'bold', color: '#34C759', width: 24 },
+  orderPosition: { fontSize: 16, fontWeight: 'bold', color: colors.success, width: 24 },
   orderImageWrap: { width: 40, height: 40, borderRadius: 8, overflow: 'hidden' },
   orderImage: { width: '100%', height: '100%' },
-  placeholder: { backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
-  placeholderText: { fontSize: 14, fontWeight: 'bold', color: '#999' },
   orderName: { flex: 1, fontSize: 15, fontWeight: '500' },
   removeBtn: { padding: 6 },
-  removeText: { fontSize: 16, color: '#FF3B30' },
+  removeText: { fontSize: 16, color: colors.danger },
   availableList: { gap: 6, marginBottom: 20 },
   availableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.bgLight,
     borderRadius: 10,
     padding: 10,
     gap: 10,
@@ -226,15 +214,8 @@ const styles = StyleSheet.create({
   availImage: { width: '100%', height: '100%' },
   availInfo: { flex: 1 },
   availName: { fontSize: 15, fontWeight: '500' },
-  availPrice: { fontSize: 13, color: '#007AFF', marginTop: 2 },
-  addText: { fontSize: 22, color: '#34C759', fontWeight: 'bold' },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
+  availPrice: { fontSize: 13, color: colors.primary, marginTop: 2 },
+  addText: { fontSize: 22, color: colors.success, fontWeight: 'bold' },
+  saveButton: { marginBottom: 24 },
   saveButtonDisabled: { opacity: 0.4 },
-  saveButtonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
 });

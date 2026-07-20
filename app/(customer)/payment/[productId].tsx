@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,31 +6,32 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { getProduct, type Product } from '@/services/products';
 import { createPayment, type PaymentMethod, type PaymentResult, type CardDetails } from '@/services/payment';
 import { useCanPay } from '@/hooks/useCanPay';
 import { useAuth } from '@/hooks/useAuth';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { useProduct } from '@/hooks/useProducts';
+import { useIsAr, getProductName } from '@/lib/helpers';
+import { sharedStyles } from '@/lib/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { ProductImage } from '@/components/ProductImage';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Footer } from '@/components/Footer';
 
 type ScreenState = 'form' | 'processing' | 'success' | 'failed';
 
 export default function PaymentScreen() {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === 'ar';
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
+  const isAr = useIsAr();
+  const { productId } = useLocalSearchParams<{ productId: string }>();
   const { user } = useAuth();
   const { canPay, loading: flagsLoading } = useCanPay();
+  const { product, loading } = useProduct(productId);
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
   const [screenState, setScreenState] = useState<ScreenState>('form');
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
 
@@ -40,16 +41,6 @@ export default function PaymentScreen() {
   const [cardName, setCardName] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvc, setCardCvc] = useState('');
-
-  useEffect(() => {
-    if (!id) return;
-    getProduct(id)
-      .then((data) => {
-        setProduct(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
 
   const handlePay = async () => {
     if (!product || !user) return;
@@ -83,11 +74,7 @@ export default function PaymentScreen() {
   };
 
   if (loading || flagsLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!product) {
@@ -104,7 +91,7 @@ export default function PaymentScreen() {
   // Success screen
   if (screenState === 'success') {
     return (
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={sharedStyles.container}>
         <View style={styles.resultCard}>
           <Text style={styles.resultIcon}>✅</Text>
           <Text style={styles.resultTitle}>{t('payment.success')}</Text>
@@ -126,7 +113,7 @@ export default function PaymentScreen() {
   // Failed screen
   if (screenState === 'failed') {
     return (
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={sharedStyles.container}>
         <View style={styles.resultCard}>
           <Text style={styles.resultIcon}>❌</Text>
           <Text style={styles.resultTitle}>{t('payment.failed')}</Text>
@@ -151,7 +138,7 @@ export default function PaymentScreen() {
   if (screenState === 'processing') {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <LoadingSpinner fullScreen={false} />
         <Text style={styles.processingText}>{t('payment.paying')}</Text>
       </View>
     );
@@ -159,13 +146,8 @@ export default function PaymentScreen() {
 
   // Payment form (always visible)
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>‹ {isAr ? product.name_ar : product.name_en}</Text>
-        </Pressable>
-        <LanguageToggle />
-      </View>
+    <ScrollView contentContainerStyle={sharedStyles.container}>
+      <ScreenHeader title={getProductName(product, isAr)} />
 
       <Text style={styles.title}>{t('payment.title')}</Text>
 
@@ -177,16 +159,15 @@ export default function PaymentScreen() {
       {/* Product summary */}
       <View style={styles.productRow}>
         <View style={styles.productImageWrap}>
-          {product.image_url ? (
-            <Image source={{ uri: product.image_url }} style={styles.productImage} contentFit="cover" />
-          ) : (
-            <View style={[styles.productImage, styles.placeholder]}>
-              <Text style={styles.placeholderText}>{product.initials}</Text>
-            </View>
-          )}
+          <ProductImage
+            product={product}
+            style={styles.productImage}
+            placeholderFontSize={18}
+            placeholderBg="#F5F5F7"
+          />
         </View>
         <View style={styles.productInfo}>
-          <Text style={styles.productName}>{isAr ? product.name_ar : product.name_en}</Text>
+          <Text style={styles.productName}>{getProductName(product, isAr)}</Text>
           <Text style={styles.productPrice}>
             {t('payment.amount')}: {product.price.toFixed(2)} {t('products.currency')}
           </Text>
@@ -194,7 +175,7 @@ export default function PaymentScreen() {
       </View>
 
       {/* Payment method selector */}
-      <Text style={styles.label}>{t('payment.paymentMethod')}</Text>
+      <Text style={sharedStyles.label}>{t('payment.paymentMethod')}</Text>
       <View style={styles.methodRow}>
         {(['mada', 'visa', 'applepay'] as PaymentMethod[]).map((m) => (
           <Pressable
@@ -212,10 +193,10 @@ export default function PaymentScreen() {
       {/* Card fields — always visible, even when canPay is false */}
       {method !== 'applepay' && (
         <>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('payment.cardNumber')}</Text>
+          <View style={sharedStyles.field}>
+            <Text style={sharedStyles.label}>{t('payment.cardNumber')}</Text>
             <TextInput
-              style={styles.input}
+              style={sharedStyles.input}
               value={cardNumber}
               onChangeText={setCardNumber}
               placeholder="4111 1111 1111 1111"
@@ -224,10 +205,10 @@ export default function PaymentScreen() {
             />
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('payment.cardName')}</Text>
+          <View style={sharedStyles.field}>
+            <Text style={sharedStyles.label}>{t('payment.cardName')}</Text>
             <TextInput
-              style={styles.input}
+              style={sharedStyles.input}
               value={cardName}
               onChangeText={setCardName}
               autoCapitalize="words"
@@ -235,20 +216,20 @@ export default function PaymentScreen() {
           </View>
 
           <View style={styles.rowFields}>
-            <View style={[styles.field, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.label}>{t('payment.cardExpiry')}</Text>
+            <View style={[sharedStyles.field, { flex: 1, marginRight: 8 }]}>
+              <Text style={sharedStyles.label}>{t('payment.cardExpiry')}</Text>
               <TextInput
-                style={styles.input}
+                style={sharedStyles.input}
                 value={cardExpiry}
                 onChangeText={setCardExpiry}
                 placeholder="MM/YY"
                 maxLength={5}
               />
             </View>
-            <View style={[styles.field, { flex: 1, marginLeft: 8 }]}>
-              <Text style={styles.label}>{t('payment.cardCvc')}</Text>
+            <View style={[sharedStyles.field, { flex: 1, marginLeft: 8 }]}>
+              <Text style={sharedStyles.label}>{t('payment.cardCvc')}</Text>
               <TextInput
-                style={styles.input}
+                style={sharedStyles.input}
                 value={cardCvc}
                 onChangeText={setCardCvc}
                 placeholder="123"
@@ -288,11 +269,7 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backButton: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   // Warning
   warningCard: {
@@ -308,24 +285,11 @@ const styles = StyleSheet.create({
   productRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
   productImageWrap: { width: 56, height: 56, borderRadius: 10, overflow: 'hidden' },
   productImage: { width: '100%', height: '100%' },
-  placeholder: { backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' },
-  placeholderText: { fontSize: 18, fontWeight: 'bold', color: '#999' },
   productInfo: { flex: 1 },
   productName: { fontSize: 16, fontWeight: '600' },
   productPrice: { fontSize: 14, color: '#007AFF', marginTop: 4 },
-  // Form
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 6 },
-  field: { marginBottom: 14 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  rowFields: { flexDirection: 'row' },
   // Methods
+  rowFields: { flexDirection: 'row' },
   methodRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   methodBtn: {
     flex: 1,

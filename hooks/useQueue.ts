@@ -13,7 +13,6 @@ export function useQueue() {
   const [queues, setQueues] = useState<Queue[]>([]);
   const [queueItems, setQueueItems] = useState<Record<number, QueueItem[]>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -26,9 +25,8 @@ export function useQueue() {
         itemsMap[q.id] = await getQueueItems(q.id);
       }
       setQueueItems(itemsMap);
-      setError(false);
     } catch {
-      setError(true);
+      // ignore — loading state is sufficient
     } finally {
       setLoading(false);
     }
@@ -58,7 +56,6 @@ export function useQueue() {
     queues,
     queueItems,
     loading,
-    error,
     refresh,
     start,
     saveItems,

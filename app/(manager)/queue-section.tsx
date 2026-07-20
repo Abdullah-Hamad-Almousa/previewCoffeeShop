@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -14,12 +13,15 @@ import { router } from 'expo-router';
 import { useQueue } from '@/hooks/useQueue';
 import { getProducts, type Product } from '@/services/products';
 import { buildRandomQueue } from '@/services/queue';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Footer } from '@/components/Footer';
+import { useIsAr, getProductName } from '@/lib/helpers';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function QueueSectionScreen() {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === 'ar';
+  const { t } = useTranslation();
+  const isAr = useIsAr();
   const { queues, queueItems, loading, start, saveItems, refresh } = useQueue();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,7 +31,7 @@ export default function QueueSectionScreen() {
     getProducts().then(setProducts).catch(() => {});
   }, []);
 
-  const handleStart = async (queueId: number) => {
+  const handleStart = useCallback(async (queueId: number) => {
     if (!queueItems[queueId] || queueItems[queueId].length === 0) {
       Alert.alert(t('queue.emptyQueue'));
       return;
@@ -43,9 +45,9 @@ export default function QueueSectionScreen() {
     } finally {
       setBusy(null);
     }
-  };
+  }, [queueItems, t, start]);
 
-  const handleRandom = async (queueId: number) => {
+  const handleRandom = useCallback(async (queueId: number) => {
     if (products.length === 0) {
       Alert.alert(t('queue.randomFailed'), 'No products loaded');
       return;
@@ -64,24 +66,15 @@ export default function QueueSectionScreen() {
     } finally {
       setBusy(null);
     }
-  };
+  }, [products, t, saveItems]);
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>‹ {t('manager.title')}</Text>
-        </Pressable>
-        <LanguageToggle />
-      </View>
+      <ScreenHeader title={t('manager.title')} />
 
       <Text style={styles.title}>{t('manager.queueSection')}</Text>
 
@@ -111,7 +104,7 @@ export default function QueueSectionScreen() {
                   const p = products.find((x) => x.id === item.product_id);
                   return (
                     <Text key={item.id} style={styles.previewItem} numberOfLines={1}>
-                      {idx + 1}. {p ? (isAr ? p.name_ar : p.name_en) : '...'}
+                      {idx + 1}. {p ? getProductName(p, isAr) : '...'}
                     </Text>
                   );
                 })}
@@ -155,14 +148,10 @@ export default function QueueSectionScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backButton: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
+  ...sharedStyles,
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   queueCard: {
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.bgLight,
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
@@ -170,18 +159,18 @@ const styles = StyleSheet.create({
   queueHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   queueName: { fontSize: 20, fontWeight: 'bold' },
   badge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
-  badgeActive: { backgroundColor: '#34C759' },
-  badgeInactive: { backgroundColor: '#E5E5EA' },
-  badgeText: { fontSize: 12, fontWeight: '600', color: '#fff' },
-  itemCount: { fontSize: 14, color: '#666', marginBottom: 6 },
+  badgeActive: { backgroundColor: colors.success },
+  badgeInactive: { backgroundColor: colors.bgGray },
+  badgeText: { fontSize: 12, fontWeight: '600', color: colors.white },
+  itemCount: { fontSize: 14, color: colors.textMid, marginBottom: 6 },
   previewList: { gap: 2, marginBottom: 8 },
   previewItem: { fontSize: 13, color: '#555' },
-  previewMore: { fontSize: 13, color: '#999' },
+  previewMore: { fontSize: 13, color: colors.textMuted },
   buttonRow: { flexDirection: 'row', gap: 8 },
   actionBtn: { flex: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
-  startBtn: { backgroundColor: '#34C759' },
-  editBtn: { backgroundColor: '#007AFF' },
-  randomBtn: { backgroundColor: '#FF9500' },
+  startBtn: { backgroundColor: colors.success },
+  editBtn: { backgroundColor: colors.primary },
+  randomBtn: { backgroundColor: colors.warning },
   btnDisabled: { opacity: 0.4 },
-  actionBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  actionBtnText: { color: colors.white, fontSize: 14, fontWeight: '600' },
 });

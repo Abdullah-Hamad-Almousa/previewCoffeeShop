@@ -15,7 +15,7 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 Deno.serve(async (_req: Request) => {
   try {
     return await rotateQueue();
-  } catch (err) {
+  } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -38,17 +38,21 @@ async function rotateQueue() {
   }
 
   // 2. Check if current recommendation has ended
-  const { data: currentRec } = await supabase
+  const { data: currentRec, error: recErr } = await supabase
     .from('recommendations')
     .select('*')
     .lte('starts_at', now)
     .gt('ends_at', now)
     .order('starts_at', { ascending: false })
-    .limit(1)
-    .single();
+    .limit(1);
+
+  // If query itself failed, report it
+  if (recErr) {
+    return jsonResponse({ error: recErr.message }, 500);
+  }
 
   // If there's still an active recommendation, nothing to do
-  if (currentRec) {
+  if (currentRec && currentRec.length > 0) {
     return jsonResponse({ message: 'Current recommendation still active', skipped: true });
   }
 
@@ -67,7 +71,7 @@ async function rotateQueue() {
   const currentPosition = activeQueue.current_position;
   const nextPosition = currentPosition >= items.length ? 1 : currentPosition + 1;
 
-  const nextProduct = items.find((item) => item.position === nextPosition);
+  const nextProduct = items.find((item: any) => item.position === nextPosition);
   if (!nextProduct) {
     return jsonResponse({ message: 'Next product not found', error: true });
   }
@@ -86,14 +90,14 @@ async function rotateQueue() {
   const startsAt = new Date().toISOString();
   const endsAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-  const { error: recErr } = await supabase.from('recommendations').insert({
+  const { error: insertRecErr } = await supabase.from('recommendations').insert({
     product_id: nextProduct.product_id,
     starts_at: startsAt,
     ends_at: endsAt,
   });
 
-  if (recErr) {
-    return jsonResponse({ error: recErr.message }, 500);
+  if (insertRecErr) {
+    return jsonResponse({ error: insertRecErr.message }, 500);
   }
 
   return jsonResponse({

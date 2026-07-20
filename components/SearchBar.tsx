@@ -1,17 +1,55 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { memo, useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TextInput,
   Pressable,
-  FlatList,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 
 import type { Product } from '@/services/products';
 import { createSearchIndex, searchProducts } from '@/lib/search';
+import { ProductImage } from '@/components/ProductImage';
+import { useIsAr, getProductName } from '@/lib/helpers';
+import { colors } from '@/lib/theme';
+
+// Memoized search result row
+const SearchResultRow = memo(function SearchResultRow({
+  product,
+  isAr,
+  currency,
+  onPress,
+}: {
+  product: Product;
+  isAr: boolean;
+  currency: string;
+  onPress: (id: string) => void;
+}) {
+  return (
+    <Pressable
+      style={styles.resultRow}
+      onPress={() => onPress(product.id)}
+    >
+      <View style={styles.resultImageWrap}>
+        <ProductImage
+          product={product}
+          style={styles.resultImage}
+          placeholderFontSize={14}
+          placeholderBg={colors.bgLight}
+        />
+      </View>
+      <View style={styles.resultInfo}>
+        <Text style={styles.resultName} numberOfLines={1}>
+          {getProductName(product, isAr)}
+        </Text>
+        <Text style={styles.resultPrice}>
+          {product.price.toFixed(2)} {currency}
+        </Text>
+      </View>
+    </Pressable>
+  );
+});
 
 interface SearchBarProps {
   products: Product[];
@@ -19,26 +57,33 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ products, onSelectProduct }: SearchBarProps) {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === 'ar';
+  const { t } = useTranslation();
+  const isAr = useIsAr();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Product[]>([]);
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   // Build the Fuse index once when products change
   const fuse = useMemo(() => createSearchIndex(products), [products]);
 
-  // Search live as user types
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-    setResults(searchProducts(fuse, query, products));
+  // Memoized search results
+  const results = useMemo(() => {
+    if (!query.trim()) return [];
+    return searchProducts(fuse, query, products);
   }, [query, fuse, products]);
 
   const showResults = focused && query.trim().length > 0;
+
+  // Stable callbacks
+  const handleSelect = useCallback((id: string) => {
+    onSelectProduct(id);
+    setQuery('');
+    setFocused(false);
+  }, [onSelectProduct]);
+
+  const handleFocus = useCallback(() => setFocused(true), []);
+  const handleBlur = useCallback(() => setTimeout(() => setFocused(false), 200), []);
+  const handleClear = useCallback(() => setQuery(''), []);
 
   return (
     <View style={styles.wrapper}>
@@ -51,14 +96,14 @@ export function SearchBar({ products, onSelectProduct }: SearchBarProps) {
           placeholderTextColor="#999"
           value={query}
           onChangeText={setQuery}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 200)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           autoCapitalize="none"
           autoCorrect={false}
           textAlign={isAr ? 'right' : 'left'}
         />
         {query.length > 0 && (
-          <Pressable onPress={() => setQuery('')} style={styles.clearBtn}>
+          <Pressable onPress={handleClear} style={styles.clearBtn}>
             <Text style={styles.clearText}>✕</Text>
           </Pressable>
         )}
@@ -71,39 +116,13 @@ export function SearchBar({ products, onSelectProduct }: SearchBarProps) {
             <Text style={styles.noResults}>{t('search.noResults')}</Text>
           ) : (
             results.map((product) => (
-              <Pressable
+              <SearchResultRow
                 key={product.id}
-                style={styles.resultRow}
-                onPress={() => {
-                  onSelectProduct(product.id);
-                  setQuery('');
-                  setFocused(false);
-                }}
-              >
-                <View style={styles.resultImageWrap}>
-                  {product.image_url ? (
-                    <Image
-                      source={{ uri: product.image_url }}
-                      style={styles.resultImage}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <View style={[styles.resultImage, styles.placeholder]}>
-                      <Text style={styles.placeholderText}>
-                        {product.initials}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <View style={styles.resultInfo}>
-                  <Text style={styles.resultName} numberOfLines={1}>
-                    {isAr ? product.name_ar : product.name_en}
-                  </Text>
-                  <Text style={styles.resultPrice}>
-                    {product.price.toFixed(2)} {t('products.currency')}
-                  </Text>
-                </View>
-              </Pressable>
+                product={product}
+                isAr={isAr}
+                currency={t('products.currency')}
+                onPress={handleSelect}
+              />
             ))
           )}
         </View>
@@ -117,7 +136,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.bgLight,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -131,7 +150,7 @@ const styles = StyleSheet.create({
   },
   inputRTL: { textAlign: 'right' },
   clearBtn: { padding: 6 },
-  clearText: { fontSize: 14, color: '#999' },
+  clearText: { fontSize: 14, color: colors.textMuted },
   dropdown: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -148,7 +167,7 @@ const styles = StyleSheet.create({
   noResults: {
     padding: 16,
     fontSize: 15,
-    color: '#999',
+    color: colors.textMuted,
     textAlign: 'center',
   },
   resultRow: {
@@ -161,13 +180,7 @@ const styles = StyleSheet.create({
   },
   resultImageWrap: { width: 40, height: 40, borderRadius: 8, overflow: 'hidden' },
   resultImage: { width: '100%', height: '100%' },
-  placeholder: {
-    backgroundColor: '#F5F5F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: { fontSize: 14, fontWeight: 'bold', color: '#999' },
   resultInfo: { flex: 1 },
   resultName: { fontSize: 15, fontWeight: '500' },
-  resultPrice: { fontSize: 13, color: '#007AFF', marginTop: 2 },
+  resultPrice: { fontSize: 13, color: colors.primary, marginTop: 2 },
 });

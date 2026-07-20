@@ -15,7 +15,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/hooks/useAuth';
 import { Turnstile } from '@/components/Turnstile';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function SignInScreen() {
   const { t } = useTranslation();
@@ -58,12 +59,7 @@ export default function SignInScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.replace('/(customer)')} style={styles.backBtn}>
-            <Text style={styles.backText}>‹ {t('nav.home')}</Text>
-          </Pressable>
-          <LanguageToggle />
-        </View>
+        <ScreenHeader title={t('nav.home')} />
 
         <Text style={styles.title}>{t('auth.signIn')}</Text>
 
@@ -104,8 +100,8 @@ export default function SignInScreen() {
           <Turnstile onToken={setCaptchaToken} />
         </View>
 
-        <Pressable style={[styles.button, submitting && styles.buttonDisabled]} onPress={handleSignIn} disabled={submitting}>
-          <Text style={styles.buttonText}>
+        <Pressable style={[styles.primaryBtn, submitting && styles.btnDisabled]} onPress={handleSignIn} disabled={submitting}>
+          <Text style={styles.primaryBtnText}>
             {submitting ? t('auth.signingIn') : t('auth.signInButton')}
           </Text>
         </Pressable>
@@ -119,45 +115,24 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
+  ...sharedStyles,
   flex: { flex: 1 },
   container: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backBtn: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  field: { marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  error: { fontSize: 12, color: '#FF3B30', marginTop: 4 },
+  error: { fontSize: 12, color: colors.danger, marginTop: 4 },
   rememberRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   checkbox: {
     width: 22,
     height: 22,
     borderWidth: 2,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxChecked: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  checkmark: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
-  rememberText: { fontSize: 15, color: '#333' },
-  button: {
-    backgroundColor: '#007AFF',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  checkboxChecked: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkmark: { color: colors.white, fontSize: 14, fontWeight: 'bold' },
+  rememberText: { fontSize: 15, color: colors.textDark },
   link: { marginTop: 16, alignItems: 'center' },
-  linkText: { fontSize: 14, color: '#007AFF' },
+  linkText: { fontSize: 14, color: colors.primary },
 });

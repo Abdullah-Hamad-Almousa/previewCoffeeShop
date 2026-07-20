@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-import { getPaymentSettings } from '@/services/products';
 
 export type PaymentMethod = 'mada' | 'visa' | 'applepay';
 export type PaymentStatus = 'pending' | 'paid' | 'failed';
@@ -69,21 +68,3 @@ export async function createPayment(
   return data as PaymentResult;
 }
 
-/**
- * Client-side check of canPay flags.
- * NOTE: This is ONLY for UI display (enabling/disabling the button).
- * The server-side edge function does the REAL check — this can be
- * bypassed by the client, but the server will still refuse.
- */
-export async function checkCanPay(): Promise<{
-  canPay: boolean;
-  payment_super: boolean;
-  payment_enabled: boolean;
-}> {
-  const settings = await getPaymentSettings();
-  return {
-    canPay: settings.payment_super && settings.payment_enabled,
-    payment_super: settings.payment_super,
-    payment_enabled: settings.payment_enabled,
-  };
-}

@@ -28,6 +28,8 @@ export default function ManagerLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        // Lazy-load: don't render screens until visited
+        freezeOnBlur: true,
       }}
     >
       <Stack.Screen name="index" />

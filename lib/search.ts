@@ -8,11 +8,11 @@ export interface SearchEntry {
   id: string;
   name_en: string;
   name_ar: string;
+  real_name_en: string | null;
+  real_name_ar: string | null;
   initials: string;
   aliases: string[];
 }
-
-export type SearchResult = Product;
 
 // ---------- Helpers ----------
 
@@ -48,6 +48,8 @@ export function buildSearchEntries(products: Product[]): SearchEntry[] {
     id: p.id,
     name_en: p.name_en,
     name_ar: p.name_ar,
+    real_name_en: p.real_name_en ?? null,
+    real_name_ar: p.real_name_ar ?? null,
     initials: p.initials || buildInitials(p.name_en),
     aliases: getAliases(p),
   }));
@@ -71,10 +73,12 @@ export function createSearchIndex(products: Product[]) {
 
   const fuse = new Fuse(entries, {
     keys: [
-      { name: 'initials', weight: 0.4 },
-      { name: 'name_en', weight: 0.3 },
-      { name: 'name_ar', weight: 0.2 },
-      { name: 'aliases', weight: 0.1 },
+      { name: 'initials', weight: 0.3 },
+      { name: 'name_en', weight: 0.25 },
+      { name: 'name_ar', weight: 0.15 },
+      { name: 'real_name_en', weight: 0.15 },
+      { name: 'real_name_ar', weight: 0.1 },
+      { name: 'aliases', weight: 0.05 },
     ],
     threshold: 0.4,
     ignoreLocation: true,

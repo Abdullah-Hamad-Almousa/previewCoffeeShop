@@ -1,60 +1,55 @@
-import { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { useTranslation } from 'react-i18next';
+import { useCallback } from 'react';
+import { StyleSheet, View, Text, Pressable, ScrollView } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useRecommendation } from '@/hooks/useRecommendation';
+import { useProducts } from '@/hooks/useProducts';
+import { useIsAr, getProductName } from '@/lib/helpers';
 import { Footer } from '@/components/Footer';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { ProductImage } from '@/components/ProductImage';
 import { ProductCard } from '@/components/ProductCard';
 import { SearchBar } from '@/components/SearchBar';
-import { getProducts, type Product } from '@/services/products';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function CustomerHome() {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === 'ar';
+  const { t } = useTranslation();
+  const isAr = useIsAr();
   const { user, role } = useAuth();
   const { data: recommendation } = useRecommendation();
+  const { products, loading, error } = useProducts();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    getProducts()
-      .then((data) => {
-        setProducts(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
-  }, []);
-
-  const handlePressProduct = (id: string) => {
+  const handlePressProduct = useCallback((id: string) => {
     router.push(`/(customer)/product/${id}`);
-  };
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <LanguageToggle />
+      {/* Hero section — first thing user sees */}
+      <View style={styles.hero}>
+        <Text style={styles.heroTitle}>{t('home.heroTitle')}</Text>
+        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle')}</Text>
+        <View style={styles.heroBadge}>
+          <Text style={styles.heroBadgeText}>{t('home.heroTagline')}</Text>
+        </View>
       </View>
 
-      <Text style={styles.welcome}>
-        {user ? `${t('auth.welcome')}, ${user.username}` : t('home.welcome')}
-      </Text>
+      <ScreenHeader />
+
+      {/* Welcome card — user greeting + location + version */}
+      <View style={styles.welcomeCard}>
+        <Text style={styles.welcomeTitle}>
+          {user ? `${t('auth.welcome')}, ${user.username}` : t('home.welcome')}
+        </Text>
+        <Text style={styles.welcomeDesc}>{t('home.appDescription')}</Text>
+        <View style={styles.welcomeMetaRow}>
+          <Text style={styles.welcomeMeta}>📍 {t('home.currentLocation')}</Text>
+          <Text style={styles.welcomeMeta}>{t('app.version')}</Text>
+        </View>
+      </View>
 
       {/* Auth links when not logged in */}
       {!user && (
@@ -100,23 +95,16 @@ export default function CustomerHome() {
           </View>
           <View style={styles.recContent}>
             <View style={styles.recImageWrap}>
-              {recommendation.product.image_url ? (
-                <Image
-                  source={{ uri: recommendation.product.image_url }}
-                  style={styles.recImage}
-                  contentFit="cover"
-                />
-              ) : (
-                <View style={[styles.recImage, styles.recPlaceholder]}>
-                  <Text style={styles.recPlaceholderText}>
-                    {recommendation.product.initials}
-                  </Text>
-                </View>
-              )}
+              <ProductImage
+                product={recommendation.product}
+                style={styles.recImage}
+                placeholderFontSize={28}
+                placeholderBg="#F5F5F7"
+              />
             </View>
             <View style={styles.recInfo}>
               <Text style={styles.recName} numberOfLines={2}>
-                {isAr ? recommendation.product.name_ar : recommendation.product.name_en}
+                {getProductName(recommendation.product, isAr)}
               </Text>
               <Text style={styles.recPrice}>
                 {recommendation.product.price.toFixed(2)} {t('products.currency')}
@@ -129,17 +117,24 @@ export default function CustomerHome() {
       {/* Product grid */}
       <Text style={styles.sectionTitle}>{t('products.title')}</Text>
       {loading ? (
-        <ActivityIndicator size="large" style={styles.loader} />
+        <LoadingSpinner fullScreen={false} />
       ) : error ? (
         <Text style={styles.errorText}>{t('products.loadError')}</Text>
       ) : products.length === 0 ? (
         <Text style={styles.emptyText}>{t('products.notFound')}</Text>
       ) : (
-        <View style={styles.grid}>
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} onPress={handlePressProduct} />
-          ))}
-        </View>
+        <FlashList
+          data={products}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          estimatedItemSize={200}
+          contentContainerStyle={styles.grid}
+          renderItem={({ item }) => (
+            <View style={styles.gridCell}>
+              <ProductCard key={item.id} product={item} onPress={handlePressProduct} />
+            </View>
+          )}
+        />
       )}
 
       <Footer />
@@ -149,12 +144,49 @@ export default function CustomerHome() {
 
 const styles = StyleSheet.create({
   container: { flexGrow: 1, padding: 16 },
-  header: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 12 },
-  welcome: { fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
+  // Hero
+  hero: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    marginBottom: 8,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    letterSpacing: -0.5,
+  },
+  heroSubtitle: {
+    fontSize: 17,
+    color: '#666',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  heroBadge: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  heroBadgeText: {
+    fontSize: 13,
+    color: '#999',
+    fontWeight: '500',
+  },
+  welcomeCard: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+  },
+  welcomeTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
+  welcomeDesc: { fontSize: 15, color: '#666', lineHeight: 22, marginBottom: 12 },
+  welcomeMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  welcomeMeta: { fontSize: 13, color: '#999' },
   authRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20 },
   authLink: { fontSize: 15, color: '#007AFF' },
   authLinkManager: { fontSize: 15, color: '#FF9500', fontWeight: '600' },
-  signOutLink: { fontSize: 15, color: '#FF3B30' },
   divider: { fontSize: 15, color: '#ccc' },
   // Recommendation card
   recCard: {
@@ -178,23 +210,18 @@ const styles = StyleSheet.create({
   recContent: { flexDirection: 'row', gap: 14, alignItems: 'center' },
   recImageWrap: { width: 72, height: 72, borderRadius: 12, overflow: 'hidden' },
   recImage: { width: '100%', height: '100%' },
-  recPlaceholder: {
-    backgroundColor: '#F5F5F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recPlaceholderText: { fontSize: 28, fontWeight: 'bold', color: '#999' },
   recInfo: { flex: 1, gap: 4 },
   recName: { fontSize: 18, fontWeight: '600', color: '#333' },
   recPrice: { fontSize: 16, color: '#007AFF', fontWeight: '500' },
   // Product grid
   sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    padding: 4,
   },
-  loader: { marginTop: 40 },
+  gridCell: {
+    flex: 1,
+    paddingHorizontal: 4,
+  },
   errorText: { fontSize: 15, color: '#FF3B30', textAlign: 'center', marginTop: 40 },
   emptyText: { fontSize: 15, color: '#999', textAlign: 'center', marginTop: 40 },
 });

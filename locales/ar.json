@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "بريفيو كافيه",
+    "name": "ميستيك كافيه",
     "version": "preview 1.0.0"
   },
   "nav": {
@@ -32,7 +32,12 @@
       "emailRequired": "البريد الإلكتروني مطلوب",
       "emailInvalid": "الرجاء إدخال بريد إلكتروني صحيح",
       "passwordRequired": "كلمة المرور مطلوبة",
-      "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "passwordTooShort": "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
+      "passwordTooLong": "كلمة المرور يجب أن تكون 32 حرفاً كحد أقصى",
+      "passwordNoUpper": "كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل",
+      "passwordNoLower": "كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل",
+      "passwordNoNumber": "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل",
+      "passwordNoSpecial": "كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل (@، #، $، إلخ)",
       "confirmRequired": "الرجاء تأكيد كلمة المرور",
       "passwordMismatch": "كلمات المرور غير متطابقة",
       "usernameRequired": "اسم المستخدم مطلوب",
@@ -71,10 +76,15 @@
     }
   },
   "home": {
-    "welcome": "أهلاً بك في بريفيو كافيه",
+    "welcome": "أهلاً بك في ميستيك كافيه",
     "recommendationToday": "ترشيح اليوم",
     "noRecommendation": "لا يوجد ترشيح متاح",
-    "todaysPick": "ترشيح اليوم"
+    "todaysPick": "نرشّح لك",
+    "appDescription": "اطلب قهوتك ووجباتك الخفيفة المفضلة. وضع تجريبي — الطلبات مجانية.",
+    "currentLocation": "الرياض",
+    "heroTitle": "ميستيك كافيه",
+    "heroSubtitle": "قهوتك المفضلة، بضغطة وحدة",
+    "heroTagline": "نسخة تجريبية — قيد التطوير"
   },
   "products": {
     "title": "المنتجات",
@@ -84,6 +94,26 @@
     "pay": "ادفع",
     "notFound": "المنتج غير موجود",
     "loadError": "فشل تحميل المنتجات"
+  },
+  "reviews": {
+    "title": "التقييمات",
+    "noReviews": "لا توجد تقييمات بعد",
+    "addReview": "أضف تقييماً",
+    "rating": "التقييم",
+    "comment": "التعليق",
+    "submit": "إرسال التقييم",
+    "submitting": "جاري الإرسال...",
+    "success": "تمت إضافة التقييم بنجاح",
+    "failed": "فشل إضافة التقييم",
+    "mustPurchase": "يمكنك تقييم المنتجات التي اشتريتها فقط",
+    "yourReview": "تقييمك",
+    "deleteReview": "حذف",
+    "deleteConfirm": "حذف تقييمك؟",
+    "deleted": "تم حذف التقييم",
+    "deleteFailed": "فشل حذف التقييم",
+    "alreadyReviewed": "لقد قمت بتقييم هذا المنتج بالفعل",
+    "loginToReview": "الرجاء تسجيل الدخول لكتابة تقييم",
+    "stars": "نجوم"
   },
   "search": {
     "placeholder": "ابحث عن المنتجات...",
@@ -114,6 +144,28 @@
     "retry": "إعادة المحاولة",
     "backToProduct": "العودة للمنتج",
     "serverCheckFailed": "تعذر التحقق من حالة الدفع. الرجاء المحاولة مرة أخرى."
+  },
+  "order": {
+    "title": "اطلب",
+    "orderNow": "اطلب الحين",
+    "pickupTime": "وقت الاستلام",
+    "asap": "في الحال (15 دقيقة)",
+    "in30min": "بعد 30 دقيقة",
+    "in1hour": "بعد ساعة",
+    "custom": "اختر وقت",
+    "confirmOrder": "تأكيد الطلب",
+    "ordering": "جاري الطلب...",
+    "success": "تم الطلب بنجاح",
+    "successMessage": "تم استلام طلبك (مجاناً)",
+    "failed": "فشل الطلب",
+    "failedMessage": "ما قدرنا نكمل طلبك",
+    "deliveryLocation": "موقع التوصيل",
+    "orderId": "رقم الطلب",
+    "done": "تم",
+    "backToProduct": "العودة للمنتج",
+    "loginRequired": "سجّل دخولك عشان تطلب",
+    "previewNote": "تطبيق تجريبي — ما راح يتم توصيل فعلي",
+    "shuffleLocation": "غيّر"
   },
   "manager": {
     "title": "لوحة Dev",

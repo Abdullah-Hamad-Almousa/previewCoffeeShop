@@ -18,10 +18,6 @@ export interface QueueItem {
   position: number;
 }
 
-export interface QueueWithItems extends Queue {
-  items: QueueItem[];
-}
-
 // ---------- Read ----------
 
 export async function getQueues(): Promise<Queue[]> {
@@ -43,18 +39,6 @@ export async function getQueueItems(queueId: number): Promise<QueueItem[]> {
 
   if (error) throw error;
   return (data ?? []) as QueueItem[];
-}
-
-export async function getQueueWithItems(queueId: number): Promise<QueueWithItems | null> {
-  const [queues, items] = await Promise.all([
-    getQueues(),
-    getQueueItems(queueId),
-  ]);
-
-  const queue = queues.find((q) => q.id === queueId);
-  if (!queue) return null;
-
-  return { ...queue, items };
 }
 
 // ---------- Start ----------
@@ -90,8 +74,9 @@ export async function startQueue(queueId: number): Promise<void> {
   const now = new Date().toISOString();
   const ends = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-  // Clear old recommendations
-  await supabase.from('recommendations').delete().lt('ends_at', now);
+  // Clear ALL existing recommendations (not just expired ones)
+  // so the new one is the only active recommendation
+  await supabase.from('recommendations').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
   const { error: recErr } = await supabase.from('recommendations').insert({
     product_id: firstItem.product_id,

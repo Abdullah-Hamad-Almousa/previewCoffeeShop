@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +15,9 @@ import { router } from 'expo-router';
 import { enrollMFA, verifyMFA, unenrollMFA, listMFAFactors } from '@/services/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { Footer } from '@/components/Footer';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { sharedStyles, colors } from '@/lib/theme';
 
 type MFAState = 'idle' | 'enrolling' | 'enrolled' | 'verifying' | 'enabled' | 'disabling';
 
@@ -108,12 +109,7 @@ export default function MfaSettingsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ {t('nav.settings')}</Text>
-        </Pressable>
-        <LanguageToggle />
-      </View>
+      <ScreenHeader title={t('nav.settings')} />
 
       <Text style={styles.title}>{t('auth.mfa.title')}</Text>
       <Text style={styles.subtitle}>{t('auth.mfa.subtitle')}</Text>
@@ -121,17 +117,13 @@ export default function MfaSettingsScreen() {
 
       {/* IDLE — not enrolled, no QR yet */}
       {state === 'idle' && (
-        <Pressable style={styles.buttonPrimary} onPress={handleEnable}>
-          <Text style={styles.buttonText}>{t('auth.mfa.enable')}</Text>
+        <Pressable style={styles.primaryBtn} onPress={handleEnable}>
+          <Text style={styles.primaryBtnText}>{t('auth.mfa.enable')}</Text>
         </Pressable>
       )}
 
       {/* ENROLLING — loading */}
-      {state === 'enrolling' && (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" />
-        </View>
-      )}
+      {state === 'enrolling' && <LoadingSpinner />}
 
       {/* ENROLLED — show QR + verify */}
       {(state === 'enrolled' || state === 'verifying') && (
@@ -153,11 +145,11 @@ export default function MfaSettingsScreen() {
             placeholder="000000"
           />
           <Pressable
-            style={[styles.buttonPrimary, (state === 'verifying' || code.length !== 6) && styles.buttonDisabled]}
+            style={[styles.primaryBtn, (state === 'verifying' || code.length !== 6) && styles.btnDisabled]}
             onPress={handleVerify}
             disabled={state === 'verifying' || code.length !== 6}
           >
-            <Text style={styles.buttonText}>
+            <Text style={styles.primaryBtnText}>
               {state === 'verifying' ? t('auth.mfa.verifying') : t('auth.mfa.verify')}
             </Text>
           </Pressable>
@@ -167,15 +159,15 @@ export default function MfaSettingsScreen() {
       {/* ENABLED — show status + disable */}
       {(state === 'enabled' || state === 'disabling') && (
         <View style={styles.section}>
-          <Text style={[styles.statusText, { color: '#34C759' }]}>
+          <Text style={[styles.statusText, { color: colors.success }]}>
             {t('auth.mfa.enabled')}
           </Text>
           <Pressable
-            style={[styles.buttonDanger, state === 'disabling' && styles.buttonDisabled]}
+            style={[styles.buttonDanger, state === 'disabling' && styles.btnDisabled]}
             onPress={handleDisable}
             disabled={state === 'disabling'}
           >
-            <Text style={styles.buttonText}>{t('auth.mfa.disable')}</Text>
+            <Text style={styles.primaryBtnText}>{t('auth.mfa.disable')}</Text>
           </Pressable>
         </View>
       )}
@@ -186,16 +178,11 @@ export default function MfaSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 24 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backBtn: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  ...sharedStyles,
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
-  subtitle: { fontSize: 14, color: '#666', marginBottom: 4 },
-  optional: { fontSize: 13, color: '#999', marginBottom: 24 },
+  subtitle: { fontSize: 14, color: colors.textMid, marginBottom: 4 },
+  optional: { fontSize: 13, color: colors.textMuted, marginBottom: 24 },
   section: { marginTop: 16, gap: 12 },
-  label: { fontSize: 14, fontWeight: '500', marginTop: 8 },
   qr: { width: 200, height: 200, alignSelf: 'center', marginVertical: 12 },
   secret: {
     fontSize: 16,
@@ -207,31 +194,18 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   codeInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    ...sharedStyles.input,
     fontSize: 24,
     textAlign: 'center',
     letterSpacing: 4,
   },
-  buttonPrimary: {
-    backgroundColor: '#007AFF',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 12,
-  },
   buttonDanger: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.danger,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 12,
   },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   statusText: { fontSize: 16, fontWeight: '600', textAlign: 'center', marginVertical: 8 },
-  link: { color: '#007AFF', fontSize: 16, marginTop: 8 },
+  link: { color: colors.primary, fontSize: 16, marginTop: 8 },
 });

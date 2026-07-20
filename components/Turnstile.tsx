@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
@@ -59,8 +59,6 @@ const TURNSTILE_HTML = `
 export function Turnstile({ onToken }: TurnstileProps) {
   const { t } = useTranslation();
   const [status, setStatus] = useState<'loading' | 'verified' | 'error'>('loading');
-  const webViewRef = useRef<WebView>(null);
-
   // Timeout: if Turnstile doesn't respond in 15s, mark as error
   useEffect(() => {
     if (status !== 'loading') return;
@@ -95,7 +93,6 @@ export function Turnstile({ onToken }: TurnstileProps) {
   return (
     <View style={styles.container}>
       <WebView
-        ref={webViewRef}
         source={{ html: TURNSTILE_HTML }}
         style={styles.webview}
         onMessage={handleMessage}

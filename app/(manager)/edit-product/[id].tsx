@@ -6,22 +6,23 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { getProduct, updateProduct, type Product } from '@/services/products';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { updateProduct } from '@/services/products';
+import { useProduct } from '@/hooks/useProducts';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Footer } from '@/components/Footer';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function EditProductScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { product, loading } = useProduct(id);
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // Editable fields
@@ -33,22 +34,15 @@ export default function EditProductScreen() {
   const [imageUrl, setImageUrl] = useState('');
 
   useEffect(() => {
-    if (!id) return;
-    getProduct(id)
-      .then((data) => {
-        if (data) {
-          setProduct(data);
-          setNameEn(data.name_en);
-          setNameAr(data.name_ar);
-          setDescEn(data.description_en ?? '');
-          setDescAr(data.description_ar ?? '');
-          setPrice(String(data.price));
-          setImageUrl(data.image_url ?? '');
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
+    if (product) {
+      setNameEn(product.name_en);
+      setNameAr(product.name_ar);
+      setDescEn(product.description_en ?? '');
+      setDescAr(product.description_ar ?? '');
+      setPrice(String(product.price));
+      setImageUrl(product.image_url ?? '');
+    }
+  }, [product]);
 
   const handleSave = async () => {
     if (!product) return;
@@ -72,16 +66,12 @@ export default function EditProductScreen() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!product) {
     return (
-      <View style={styles.center}>
+      <View style={sharedStyles.center}>
         <Text style={styles.notFound}>{t('products.notFound')}</Text>
       </View>
     );
@@ -89,29 +79,24 @@ export default function EditProductScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>‹ {t('manager.productsManagement')}</Text>
-        </Pressable>
-        <LanguageToggle />
-      </View>
+      <ScreenHeader title={t('manager.productsManagement')} />
 
       <Text style={styles.title}>{t('manager.editProduct')}</Text>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('manager.nameEn')}</Text>
-        <TextInput style={styles.input} value={nameEn} onChangeText={setNameEn} />
+      <View style={sharedStyles.field}>
+        <Text style={sharedStyles.label}>{t('manager.nameEn')}</Text>
+        <TextInput style={sharedStyles.input} value={nameEn} onChangeText={setNameEn} />
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('manager.nameAr')}</Text>
-        <TextInput style={styles.input} value={nameAr} onChangeText={setNameAr} />
+      <View style={sharedStyles.field}>
+        <Text style={sharedStyles.label}>{t('manager.nameAr')}</Text>
+        <TextInput style={sharedStyles.input} value={nameAr} onChangeText={setNameAr} />
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('manager.descEn')}</Text>
+      <View style={sharedStyles.field}>
+        <Text style={sharedStyles.label}>{t('manager.descEn')}</Text>
         <TextInput
-          style={[styles.input, styles.textArea]}
+          style={[sharedStyles.input, styles.textArea]}
           value={descEn}
           onChangeText={setDescEn}
           multiline
@@ -119,10 +104,10 @@ export default function EditProductScreen() {
         />
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('manager.descAr')}</Text>
+      <View style={sharedStyles.field}>
+        <Text style={sharedStyles.label}>{t('manager.descAr')}</Text>
         <TextInput
-          style={[styles.input, styles.textArea]}
+          style={[sharedStyles.input, styles.textArea]}
           value={descAr}
           onChangeText={setDescAr}
           multiline
@@ -130,20 +115,20 @@ export default function EditProductScreen() {
         />
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('manager.priceLabel')}</Text>
+      <View style={sharedStyles.field}>
+        <Text style={sharedStyles.label}>{t('manager.priceLabel')}</Text>
         <TextInput
-          style={styles.input}
+          style={sharedStyles.input}
           value={price}
           onChangeText={setPrice}
           keyboardType="decimal-pad"
         />
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('manager.imageUrl')}</Text>
+      <View style={sharedStyles.field}>
+        <Text style={sharedStyles.label}>{t('manager.imageUrl')}</Text>
         <TextInput
-          style={styles.input}
+          style={sharedStyles.input}
           value={imageUrl}
           onChangeText={setImageUrl}
           autoCapitalize="none"
@@ -152,11 +137,11 @@ export default function EditProductScreen() {
       </View>
 
       <Pressable
-        style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+        style={[sharedStyles.primaryBtn, styles.saveButton, saving && sharedStyles.btnDisabled]}
         onPress={handleSave}
         disabled={saving}
       >
-        <Text style={styles.saveButtonText}>
+        <Text style={sharedStyles.primaryBtnText}>
           {saving ? t('manager.saving') : t('manager.saveChanges')}
         </Text>
       </Pressable>
@@ -167,32 +152,9 @@ export default function EditProductScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backButton: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
+  ...sharedStyles,
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
-  field: { marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
   textArea: { minHeight: 70, textAlignVertical: 'top' },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  saveButtonDisabled: { opacity: 0.5 },
-  saveButtonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
-  notFound: { fontSize: 18, color: '#666' },
+  saveButton: { marginBottom: 24 },
+  notFound: { fontSize: 18, color: colors.textMid },
 });

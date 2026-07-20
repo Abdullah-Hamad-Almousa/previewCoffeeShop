@@ -15,7 +15,8 @@ import { router } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { Footer } from '@/components/Footer';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
@@ -37,9 +38,9 @@ export default function SettingsScreen() {
     }
     setDeleting(true);
     try {
-      // Delete profile row
-      await supabase.from('profiles').delete().eq('user_id', user.id);
-      // Sign out
+      // Delete auth user (cascades to profile via FK on delete cascade)
+      const { error } = await supabase.rpc('delete_own_account');
+      if (error) throw error;
       await supabase.auth.signOut();
       setShowDeleteModal(false);
       setDeleteConfirm('');
@@ -54,12 +55,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>‹ {t('nav.home')}</Text>
-        </Pressable>
-        <LanguageToggle />
-      </View>
+      <ScreenHeader title={t('nav.home')} />
 
       <Text style={styles.title}>{t('nav.settings')}</Text>
 
@@ -95,10 +91,10 @@ export default function SettingsScreen() {
             <Text style={styles.arrow}>›</Text>
           </Pressable>
           <Pressable onPress={() => signOut()} style={styles.rowButton}>
-            <Text style={[styles.rowText, { color: '#FF3B30' }]}>{t('auth.signOut')}</Text>
+            <Text style={[styles.rowText, { color: colors.danger }]}>{t('auth.signOut')}</Text>
           </Pressable>
           <Pressable onPress={() => setShowDeleteModal(true)} style={styles.rowButton}>
-            <Text style={[styles.rowText, { color: '#FF3B30' }]}>{t('settings.deleteAccount')}</Text>
+            <Text style={[styles.rowText, { color: colors.danger }]}>{t('settings.deleteAccount')}</Text>
           </Pressable>
         </View>
       )}
@@ -155,30 +151,27 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backButton: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
+  ...sharedStyles,
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24 },
   section: { marginBottom: 24 },
-  sectionLabel: { fontSize: 14, fontWeight: '600', color: '#999', marginBottom: 10 },
+  sectionLabel: { fontSize: 14, fontWeight: '600', color: colors.textMuted, marginBottom: 10 },
   langRow: { flexDirection: 'row', gap: 8 },
   langBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  langBtnActive: { borderColor: '#007AFF', backgroundColor: '#F0F6FF' },
-  langBtnText: { fontSize: 16, fontWeight: '500', color: '#666' },
-  langBtnTextActive: { color: '#007AFF', fontWeight: '600' },
+  langBtnActive: { borderColor: colors.primary, backgroundColor: '#F0F6FF' },
+  langBtnText: { fontSize: 16, fontWeight: '500', color: colors.textMid },
+  langBtnTextActive: { color: colors.primary, fontWeight: '600' },
   rowButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.bgLight,
     borderRadius: 10,
     paddingVertical: 16,
     paddingHorizontal: 16,
@@ -187,7 +180,7 @@ const styles = StyleSheet.create({
   rowText: { fontSize: 17 },
   arrow: { fontSize: 22, color: '#ccc' },
   versionSection: { alignItems: 'center', marginTop: 40 },
-  versionText: { fontSize: 13, color: '#999' },
+  versionText: { fontSize: 13, color: colors.textMuted },
   // Modal
   modalOverlay: {
     flex: 1,
@@ -197,41 +190,36 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 400,
   },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12, color: '#FF3B30' },
-  modalHint: { fontSize: 15, color: '#666', marginBottom: 16, lineHeight: 22 },
-  modalUsername: { fontWeight: 'bold', color: '#333' },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12, color: colors.danger },
+  modalHint: { fontSize: 15, color: colors.textMid, marginBottom: 16, lineHeight: 22 },
+  modalUsername: { fontWeight: 'bold', color: colors.textDark },
   modalInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
+    ...sharedStyles.input,
     marginBottom: 16,
   },
   modalButtons: { flexDirection: 'row', gap: 12 },
   modalCancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  modalCancelText: { fontSize: 16, color: '#666', fontWeight: '500' },
+  modalCancelText: { fontSize: 16, color: colors.textMid, fontWeight: '500' },
   modalDeleteBtn: {
     flex: 1,
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.danger,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
   },
   modalDeleteBtnDisabled: { opacity: 0.4 },
-  modalDeleteText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  modalDeleteText: { color: colors.white, fontSize: 16, fontWeight: '600' },
 });

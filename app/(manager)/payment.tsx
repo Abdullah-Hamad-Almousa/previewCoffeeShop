@@ -5,15 +5,15 @@ import {
   Text,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { router } from 'expo-router';
 
 import { getPaymentSettings, updatePaymentEnabled } from '@/services/products';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Footer } from '@/components/Footer';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function PaymentScreen() {
   const { t } = useTranslation();
@@ -47,21 +47,12 @@ export default function PaymentScreen() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>‹ {t('manager.title')}</Text>
-        </Pressable>
-        <LanguageToggle />
-      </View>
+      <ScreenHeader title={t('manager.title')} />
 
       <Text style={styles.title}>{t('manager.paymentToggle')}</Text>
 
@@ -110,14 +101,10 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backButton: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: '#007AFF' },
+  ...sharedStyles,
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
   card: {
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.bgLight,
     borderRadius: 14,
     padding: 18,
     marginBottom: 14,
@@ -125,10 +112,10 @@ const styles = StyleSheet.create({
   cardLabel: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
   readOnlyRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   badge: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  badgeOn: { backgroundColor: '#34C759' },
-  badgeOff: { backgroundColor: '#E5E5EA' },
-  badgeText: { fontSize: 15, fontWeight: '600', color: '#fff' },
-  note: { fontSize: 13, color: '#999', fontStyle: 'italic' },
+  badgeOn: { backgroundColor: colors.success },
+  badgeOff: { backgroundColor: colors.bgGray },
+  badgeText: { fontSize: 15, fontWeight: '600', color: colors.white },
+  note: { fontSize: 13, color: colors.textMuted, fontStyle: 'italic' },
   toggleRow: { flexDirection: 'row' },
   toggle: {
     paddingHorizontal: 28,
@@ -137,15 +124,15 @@ const styles = StyleSheet.create({
     minWidth: 90,
     alignItems: 'center',
   },
-  toggleOn: { backgroundColor: '#34C759' },
-  toggleOff: { backgroundColor: '#E5E5EA' },
-  toggleText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+  toggleOn: { backgroundColor: colors.success },
+  toggleOff: { backgroundColor: colors.bgGray },
+  toggleText: { fontSize: 16, fontWeight: '600', color: colors.white },
   logicCard: {
     backgroundColor: '#FFFBE6',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
-  logicText: { fontSize: 15, fontWeight: '600', color: '#666', marginBottom: 6 },
+  logicText: { fontSize: 15, fontWeight: '600', color: colors.textMid, marginBottom: 6 },
   logicStatus: { fontSize: 16, fontWeight: '600' },
 });

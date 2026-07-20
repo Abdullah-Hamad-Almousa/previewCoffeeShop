@@ -4,7 +4,8 @@ import { Link } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
 import { Footer } from '@/components/Footer';
-import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { sharedStyles, colors } from '@/lib/theme';
 
 export default function ManagerPanel() {
   const { t } = useTranslation();
@@ -12,9 +13,7 @@ export default function ManagerPanel() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <LanguageToggle />
-      </View>
+      <ScreenHeader />
 
       <Text style={styles.title}>{t('manager.title')}</Text>
       <Text style={styles.subtitle}>{user?.email}</Text>
@@ -59,23 +58,21 @@ export default function ManagerPanel() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16 },
-  header: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 12 },
+  ...sharedStyles,
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { fontSize: 14, color: '#666', marginBottom: 24 },
+  subtitle: { fontSize: 14, color: colors.textMid, marginBottom: 24 },
   section: { flex: 1, gap: 10 },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.bgLight,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 18,
   },
-  navButtonDisabled: { opacity: 0.5 },
   navText: { fontSize: 17, fontWeight: '500' },
   navArrow: { fontSize: 22, color: '#ccc' },
   backLink: { marginTop: 20, marginBottom: 8 },
-  backLinkText: { fontSize: 16, color: '#007AFF' },
+  backLinkText: { fontSize: 16, color: colors.primary },
 });
