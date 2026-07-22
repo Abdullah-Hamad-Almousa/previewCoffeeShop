@@ -4,20 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import type { Product } from '@/services/products';
 import { ProductImage } from '@/components/ProductImage';
-import { useIsAr, getProductName, getProductRealName } from '@/lib/helpers';
+import { useIsAr, getProductName, getProductRealName, renderStars } from '@/lib/helpers';
 import { colors } from '@/lib/theme';
 
 interface ProductCardProps {
   product: Product;
   onPress: (id: string) => void;
-}
-
-/** Render star characters for a rating (e.g. 4.5 → "★★★★⯪") */
-function renderStars(rating: number): string {
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.25 && rating - full < 0.75;
-  const empty = 5 - full - (hasHalf ? 1 : 0);
-  return '★'.repeat(full) + (hasHalf ? '⯨' : '') + '☆'.repeat(empty);
 }
 
 export const ProductCard = memo(function ProductCard({ product, onPress }: ProductCardProps) {

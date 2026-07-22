@@ -94,4 +94,18 @@ export const sharedStyles = StyleSheet.create({
     color: colors.copper,
   },
   image: { width: '100%', height: '100%' },
+  // Shared card style (dark brown, bordered)
+  card: {
+    backgroundColor: colors.bgCard,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  // Shared section title (cream text)
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.textLight,
+    marginBottom: 12,
+  },
 });

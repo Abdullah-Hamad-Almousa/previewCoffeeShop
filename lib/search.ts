@@ -25,20 +25,25 @@ export function buildInitials(nameEn: string): string {
     .toUpperCase();
 }
 
-/** Known transliteration aliases for common coffee products. */
+/** Known transliteration aliases for Mystic products (by real_name_en) */
 const ALIAS_MAP: Record<string, string[]> = {
-  espresso: ['اسبريسو', 'اسبريسو', 'اكسبريسو'],
-  cappuccino: ['كابتشينو', 'كابتشينو', 'كابوتشينو'],
-  latte: ['لاتيه', 'لاتي', 'لاتيه'],
-  'almond croissant': ['كرواسون اللوز', 'كروسان اللوز'],
-  'iced americano': ['امريكانو مثلج', 'امريكانو بارد'],
-  'matcha latte': ['ماتشا لاتيه', 'ماتشا'],
-  'chocolate muffin': ['كعكة الشوكولاتة', 'مافن الشوكولاتة'],
-  'flat white': ['فلات وايت', 'فلات وايت'],
+  mocha: ['موكا'],
+  'vanilla latte': ['لاتيه فانيلا', 'لاتيه'],
+  'double espresso': ['إسبريسو مزدوج', 'إسبريسو'],
+  cappuccino: ['كابتشينو', 'كابوتشينو'],
+  americano: ['أمريكانو', 'امريكانو'],
+  'cold brew': ['قهوة باردة'],
+  'chai latte': ['لاتيه تشاي', 'تشاي'],
+  'drip coffee': ['قهوة فيلتر', 'فيلتر'],
+  'iced caramel macchiato': ['ماكياتو كراميل', 'ماكياتو'],
+  'chocolate croissant': ['كرواسون الشوكولاتة', 'كرواسون'],
+  'honey scone': ['سكون العسل', 'سكون'],
 };
 
 function getAliases(product: Product): string[] {
-  const key = product.name_en.toLowerCase();
+  // Look up by real_name_en (e.g. "Cappuccino", "Mocha")
+  // Falls back to name_en if no real_name_en
+  const key = (product.real_name_en ?? product.name_en).toLowerCase();
   return ALIAS_MAP[key] ?? [];
 }
 

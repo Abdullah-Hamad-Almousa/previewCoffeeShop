@@ -25,3 +25,11 @@ export function getProductRealName(
   const name = isAr ? product.real_name_ar : product.real_name_en;
   return name ?? null;
 }
+
+/** Render star characters for a rating (e.g. 4.5 → "★★★★⯨") */
+export function renderStars(rating: number): string {
+  const full = Math.floor(rating);
+  const hasHalf = rating - full >= 0.25 && rating - full < 0.75;
+  const empty = 5 - full - (hasHalf ? 1 : 0);
+  return '★'.repeat(full) + (hasHalf ? '⯨' : '') + '☆'.repeat(empty);
+}

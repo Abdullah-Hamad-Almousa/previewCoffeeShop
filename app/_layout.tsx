@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 
 import '@/lib/i18n';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
-import { MusicButton } from '@/components/MusicButton';
 
 export { ErrorBoundary } from 'expo-router';
 

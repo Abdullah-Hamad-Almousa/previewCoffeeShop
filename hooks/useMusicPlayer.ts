@@ -1,10 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  useAudioPlaylist,
-  useAudioPlaylistStatus,
-  setAudioModeAsync,
-  type AudioPlaylist,
-} from 'expo-audio';
+import { useAudioPlaylist, setAudioModeAsync } from 'expo-audio';
 
 // Track files (bundled in assets — relative paths for require)
 const TRACKS = [
@@ -12,9 +7,7 @@ const TRACKS = [
   require('../assets/audio/track2.mp3'),
 ];
 
-// Low volume — background ambient
 const VOLUME = 0.3;
-// Delay before music starts (ms)
 const START_DELAY = 10_000;
 
 type MusicState = 'idle' | 'playing' | 'paused';
@@ -24,13 +17,10 @@ export function useMusicPlayer() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startedRef = useRef(false);
 
-  // Create playlist with loop='all' so track1 → track2 → track1...
   const playlist = useAudioPlaylist({
     sources: TRACKS,
     loop: 'all',
   });
-
-  const status = useAudioPlaylistStatus(playlist);
 
   // Set volume + configure audio mode on mount
   useEffect(() => {
@@ -63,7 +53,6 @@ export function useMusicPlayer() {
     };
   }, [playlist]);
 
-  // Pause
   const pauseMusic = useCallback(() => {
     try {
       playlist.pause();
@@ -71,7 +60,6 @@ export function useMusicPlayer() {
     } catch {}
   }, [playlist]);
 
-  // Resume
   const resumeMusic = useCallback(() => {
     try {
       playlist.play();
@@ -79,10 +67,5 @@ export function useMusicPlayer() {
     } catch {}
   }, [playlist]);
 
-  return {
-    state,
-    status,
-    pauseMusic,
-    resumeMusic,
-  };
+  return { state, pauseMusic, resumeMusic };
 }

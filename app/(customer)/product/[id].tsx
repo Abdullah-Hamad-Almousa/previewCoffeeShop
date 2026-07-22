@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { getProduct, type Product } from '@/services/products';
 import { getReviews, addReview, deleteReview, hasPurchased, getProductRating, type Review, type ProductRating } from '@/services/reviews';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsAr, getProductName, getProductDesc, getProductRealName } from '@/lib/helpers';
+import { useIsAr, getProductName, getProductDesc, getProductRealName, renderStars } from '@/lib/helpers';
 import { sharedStyles, colors } from '@/lib/theme';
 import { Footer } from '@/components/Footer';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -163,12 +163,7 @@ export default function ProductDetailScreen() {
       {productRating && productRating.review_count > 0 && (
         <View style={styles.ratingRow}>
           <Text style={styles.ratingStars}>
-            {'★'.repeat(Math.floor(productRating.avg_rating))}
-            {productRating.avg_rating - Math.floor(productRating.avg_rating) >= 0.25 &&
-             productRating.avg_rating - Math.floor(productRating.avg_rating) < 0.75 ? '⯨' : ''}
-            {'☆'.repeat(5 - Math.floor(productRating.avg_rating) -
-              (productRating.avg_rating - Math.floor(productRating.avg_rating) >= 0.25 &&
-               productRating.avg_rating - Math.floor(productRating.avg_rating) < 0.75 ? 1 : 0))}
+            {renderStars(productRating.avg_rating)}
           </Text>
           <Text style={styles.ratingSummary}>
             {productRating.avg_rating.toFixed(1)} · {productRating.review_count} {t('reviews.stars')}
@@ -343,12 +338,9 @@ const styles = StyleSheet.create({
   addReviewBtnText: { color: colors.textLight, fontSize: 16, fontWeight: '600' },
   loginHint: { fontSize: 14, color: colors.textMuted, marginBottom: 16, fontStyle: 'italic' },
   form: {
-    backgroundColor: colors.bgCard,
-    borderRadius: 12,
+    ...sharedStyles.card,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   starsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   star: { fontSize: 32 },
@@ -374,12 +366,10 @@ const styles = StyleSheet.create({
   submitBtnText: { color: colors.bgDark, fontSize: 16, fontWeight: '700' },
   noReviews: { fontSize: 14, color: colors.textMuted, fontStyle: 'italic', marginBottom: 8 },
   reviewCard: {
-    backgroundColor: colors.bgCard,
+    ...sharedStyles.card,
     borderRadius: 10,
     padding: 14,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   reviewHeader: {
     flexDirection: 'row',
